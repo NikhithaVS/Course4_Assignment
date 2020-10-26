@@ -1,8 +1,10 @@
 package ImageHoster.controller;
 
+import ImageHoster.model.Comment;
 import ImageHoster.model.Image;
 import ImageHoster.model.Tag;
 import ImageHoster.model.User;
+import ImageHoster.service.CommentService;
 import ImageHoster.service.ImageService;
 import ImageHoster.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class ImageController {
 
     @Autowired
     private ImageService imageService;
+
+    @Autowired
+    private CommentService commentService;
 
     @Autowired
     private TagService tagService;
@@ -50,6 +55,9 @@ public class ImageController {
         Image image = imageService.getImageById(imageId);
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
+
+        List<Comment> comments = commentService.getCommentsByImageId(imageId);
+        model.addAttribute("comments", comments);
         return "images/image";
     }
 
@@ -152,8 +160,11 @@ public class ImageController {
         Image image = imageService.getImage(imageId);
         User user = (User) session.getAttribute("loggeduser");
         if (image.getUser() != user) {
+            model.addAttribute("image", image);
             String error = "Only the owner of the image can delete the image";
             model.addAttribute("deleteError", error);
+            List<Comment> comments = commentService.getCommentsByImageId(imageId);
+            model.addAttribute("comments", comments);
             return "images/image";
         } else {
             imageService.deleteImage(imageId);
